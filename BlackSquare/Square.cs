@@ -35,16 +35,24 @@ namespace BlackSquare
         /// <summary>
         /// Цвет квадрата.
         /// </summary>
-        protected Color _color;
+        protected Color _color = Color.White;
 
-        public Square()
-        {
-
-        }
-
+        /// <summary>
+        /// Отрисовка квардрата на экране.
+        /// </summary>
         public virtual void Draw(RenderTarget target, RenderStates states)
         {
+            RectangleShape shape = new(new Vector2f(_size, _size))
+                { FillColor = _color, Origin = new Vector2f(_size / 2f, _size / 2f), Position = new Vector2f(_position.X, _position.Y) };
+            shape.Draw(target, states);
+        }
 
+        /// <summary>
+        /// Проверка, попадает ли щелчок мышью по квадрату.
+        /// </summary>
+        public bool HitTest(Vector2i point)
+        {
+            return point.X >= _position.X - _size / 2f && point.X < _position.X + _size / 2f && point.Y >= _position.Y - _size / 2f && point.Y < _position.Y + _size / 2f;
         }
     }
 }

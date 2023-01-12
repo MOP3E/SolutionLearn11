@@ -38,8 +38,8 @@ namespace BlackSquare
             _window = new RenderWindow(new VideoMode(800, 600), "Чёрный квадрат");
             _window.SetFramerateLimit(60);
             _window.Closed += _window_Closed;
-            _window.SetMouseCursorVisible(false);
-            _window.SetMouseCursorGrabbed(true);
+            //_window.SetMouseCursorVisible(false);
+            //_window.SetMouseCursorGrabbed(true);
                         
             //создание часов
             Clock clock = new();
@@ -77,6 +77,8 @@ namespace BlackSquare
                 //игровая логика
                 
                 //отрисовка игрового экрана
+                RectangleShape shape = new RectangleShape(new Vector2f(100, 100)) { FillColor = Color.Blue, Origin = new Vector2f(50, 50), Position = new Vector2f(75, 75) };
+                shape.Draw(_window, RenderStates.Default);
 
                 _window.Display();
             }
