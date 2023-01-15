@@ -115,10 +115,12 @@ namespace BlackSquare
         /// <returns></returns>
         public void Move(IntRect field, float deltaTime)
         {
+            //увеличить позицию квардата на величину приращения
             _position = _position.Add(_increment.Mul(deltaTime));
-            if ((_increment.X is < 1f and > -1f && ((_increment.Y >= 0 && _position.Y >= _destination.Y) || (_increment.Y < 0 && _position.Y < _destination.Y))) ||
-                (_increment.Y is < 1f and > -1f && ((_increment.X >= 0 && _position.X >= _destination.X) || (_increment.X < 0 && _position.Y < _destination.X))) ||
-                (((_increment.X >= 0 && _position.X >= _destination.X) || (_increment.X < 0 && _position.X < _destination.X)) &&
+            //проверить, достигнута ли точка назначения
+            if ((_increment.X is < 1f and > -1f && ((_increment.Y >= 0 && _position.Y >= _destination.Y) || (_increment.Y < 0 && _position.Y < _destination.Y))) || //если угол близок к прямому, игнорировать ось, приращение которой близко к нулю
+                (_increment.Y is < 1f and > -1f && ((_increment.X >= 0 && _position.X >= _destination.X) || (_increment.X < 0 && _position.Y < _destination.X))) || //если угол близок к прямому, игнорировать ось, приращение которой близко к нулю
+                (((_increment.X >= 0 && _position.X >= _destination.X) || (_increment.X < 0 && _position.X < _destination.X)) && //стандартная проверка
                 ((_increment.Y >= 0 && _position.Y >= _destination.Y) || (_increment.Y < 0 && _position.Y < _destination.Y))))
             {
                 _position = _destination;
