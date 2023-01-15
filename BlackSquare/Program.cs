@@ -24,10 +24,19 @@ namespace BlackSquare
         private static GameState _state;
 
         /// <summary>
+        /// Параметры игрового поля.
+        /// </summary>
+        private static IntRect _field;
+
+        /// <summary>
         /// Игровой бог.
         /// </summary>
         private static Random _random;
 
+        /// <summary>
+        /// Текст для вывода текста на экран.
+        /// </summary>
+        private static Text _text;
 
         static void Main(string[] args)
         {
@@ -40,10 +49,19 @@ namespace BlackSquare
             _window.Closed += _window_Closed;
             //_window.SetMouseCursorVisible(false);
             //_window.SetMouseCursorGrabbed(true);
-                        
+
+            //настройка игрового текста
+            _text = new Text();
+            _text.Font = new Font("comic.ttf");
+
+            //настройка игрового поля
+            _field = new IntRect(0, 30, 800, 600);
+
             //создание часов
             Clock clock = new();
             clock.Restart();
+
+            Square square = new(_random, 200, 200, _field);
 
             while (_window.IsOpen)
             {
@@ -75,10 +93,10 @@ namespace BlackSquare
                 }
 
                 //игровая логика
+                square.Move(_field, deltaTime);
                 
                 //отрисовка игрового экрана
-                RectangleShape shape = new RectangleShape(new Vector2f(100, 100)) { FillColor = Color.Blue, Origin = new Vector2f(50, 50), Position = new Vector2f(75, 75) };
-                shape.Draw(_window, RenderStates.Default);
+                square.Draw(_window, RenderStates.Default);
 
                 _window.Display();
             }
@@ -90,6 +108,18 @@ namespace BlackSquare
         private static void _window_Closed(object sender, EventArgs e)
         {
             _window.Close();
+        }
+
+        /// <summary>
+        /// Вывод на экран текста.
+        /// </summary>
+        public static void DrawText(string text, uint size, Color color, int x, int y)
+        {
+            _text.DisplayedString = text;
+            _text.CharacterSize = size;
+            _text.FillColor = color;
+            _text.Position = new Vector2f(x, y);
+            _text.Draw(_window, RenderStates.Default);
         }
     }
 }

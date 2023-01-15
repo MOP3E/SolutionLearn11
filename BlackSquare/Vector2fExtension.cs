@@ -119,5 +119,10 @@ namespace BlackSquare
             if (a.X == b.X) return a.Y >= b.Y;
             return a.X >= b.X;
         }
+
+        public static float Length(this Vector2f a)
+        {
+            return (float)Math.Sqrt(a.X * a.X + a.Y * a.Y);
+        }
     }
 }

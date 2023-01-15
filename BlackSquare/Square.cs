@@ -4,6 +4,7 @@ using SFML.Graphics;
 using SFML.Audio;
 using SFML.System;
 using System.Numerics;
+using System.Reflection.Metadata;
 
 namespace BlackSquare
 {
@@ -60,7 +61,7 @@ namespace BlackSquare
         /// <summary>
         /// Цвет квадрата.
         /// </summary>
-        protected Color _color = Color.White;
+        protected Color _color;
 
         /// <summary>
         /// Глобальный игровой бог.
@@ -77,11 +78,15 @@ namespace BlackSquare
         /// </summary>
         protected int _maxSpeed;
 
-        public Square(Random random, int minSpeed, int maxSpeed)
+        public Square(Random random, int minSpeed, int maxSpeed, IntRect field)
         {
+            _color = Color.White;
+            _size = 100;
             _random = random;
             _minSpeed = minSpeed;
             _maxSpeed = maxSpeed;
+            _position = new Vector2f(_random.Next(field.Width) + field.Left, _random.Next(field.Height) + field.Top);
+            NewDestination(field);
         }
 
         /// <summary>
@@ -111,7 +116,10 @@ namespace BlackSquare
         public void Move(IntRect field, float deltaTime)
         {
             _position = _position.Add(_increment.Mul(deltaTime));
-            if (_position.GtEq(_destination))
+            if ((_increment.X is < 1f and > -1f && ((_increment.Y >= 0 && _position.Y >= _destination.Y) || (_increment.Y < 0 && _position.Y < _destination.Y))) ||
+                (_increment.Y is < 1f and > -1f && ((_increment.X >= 0 && _position.X >= _destination.X) || (_increment.X < 0 && _position.Y < _destination.X))) ||
+                (((_increment.X >= 0 && _position.X >= _destination.X) || (_increment.X < 0 && _position.X < _destination.X)) &&
+                ((_increment.Y >= 0 && _position.Y >= _destination.Y) || (_increment.Y < 0 && _position.Y < _destination.Y))))
             {
                 _position = _destination;
                 NewDestination(field);
@@ -129,7 +137,7 @@ namespace BlackSquare
             {
                 Vector2f destination = new(_random.Next(field.Width) + field.Left, _random.Next(field.Height) + field.Top);
                 test = _destination.Sub(destination);
-                if (Math.Abs(test.X) > 10 && Math.Abs(test.Y) > 10)
+                if(_position.Sub(destination).Length() >= _maxSpeed / 2f) 
                 {
                     _destination = destination;
                     break;
@@ -141,12 +149,18 @@ namespace BlackSquare
 
             //рассчитать угол между вектором и осью 0X
             float angle;
-            if (test.X == 0 && test.Y > 0) angle = Pi12;
-            else if (test.X == 0 && test.Y < 0) angle = Pi32;
-            else if (test.Y == 0 && test.X > 0) angle = 0;
-            else if (test.Y == 0 && test.X < 0) angle = Pi;
-            else if (test.Y > 0) angle = (float)(Pi12 - test.X / Math.Sqrt(test.X * test.X + test.Y * test.Y));
-            else angle = (float)(Pi32 + test.X / Math.Sqrt(test.X * test.X + test.Y * test.Y));
+            if (test.X == 0 && test.Y > 0) 
+                angle = Pi12;
+            else if (test.X == 0 && test.Y < 0) 
+                angle = Pi32;
+            else if (test.Y == 0 && test.X > 0) 
+                angle = 0;
+            else if (test.Y == 0 && test.X < 0) 
+                angle = Pi;
+            else if (test.Y > 0) 
+                angle = (float)(Pi12 - Math.Asin(test.X / Math.Sqrt(test.X * test.X + test.Y * test.Y)));
+            else 
+                angle = (float)(Pi32 + Math.Asin(test.X / Math.Sqrt(test.X * test.X + test.Y * test.Y)));
 
             //рассчитать скорость
             int speed = _minSpeed == _maxSpeed ? _minSpeed : _random.Next(_minSpeed, _maxSpeed);
