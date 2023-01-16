@@ -213,14 +213,13 @@ namespace BlackSquare
             {
                 new(_random, 180, 250, _field),
                 new(_random, 180, 250, _field),
-                new(_random, 180, 250, _field),
-                new(_random, 180, 250, _field),
-                new(_random, 180, 250, _field),
             };
 
             //создать красные квадраты
             _reds = new List<SquareRed>
             {
+                new(_random, 80, 120, _field),
+                new(_random, 80, 120, _field),
                 new(_random, 80, 120, _field),
                 new(_random, 80, 120, _field),
                 new(_random, 80, 120, _field),
