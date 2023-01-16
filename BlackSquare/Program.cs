@@ -1,7 +1,5 @@
-﻿using System;
-using SFML.Window;
+﻿using SFML.Window;
 using SFML.Graphics;
-using SFML.Audio;
 using SFML.System;
 
 namespace BlackSquare
@@ -97,7 +95,7 @@ namespace BlackSquare
                 float deltaTime = clock.ElapsedTime.AsSeconds();
                 clock.Restart();
 
-                _window.Clear(new Color(128, 128, 128));
+                _window.Clear(new Color(207, 207, 207));
 
                 _window.DispatchEvents();
 
@@ -241,26 +239,39 @@ namespace BlackSquare
         /// </summary>
         private static void Draw()
         {
+            Color color = new(19, 74, 13);
+
             switch (_state)
             {
                 case GameState.MainMenu:
-                    //TODO: нарисовать главное меню
-                    DrawText("Чёрный квадрат", 72, Color.Yellow, 0, 0);
+                    //нарисовать главное меню
+                    int verticalOffset = 150;
+                    DrawText("Чёрный квадрат", 72, color, 124, 0 + verticalOffset);
+                    DrawText($"Результат {_score}", 24, color, 332, 90 + verticalOffset);
+                    DrawText($"Рекорд {_record}", 24, color, 348, 130 + verticalOffset);
+                    DrawText("Щёлкните мышью для начала игры.", 24, color, 186, 170 + verticalOffset);
+                    DrawText("Нажмите [ESC] для выхода из игры.", 24, color, 184, 210 + verticalOffset);
                     break;
                 case GameState.Game:
-                    //TODO: нарисовать очки
+                    //нарисовать очки
+                    DrawText($"{_score}", 24, color, 740, 8);
                     foreach (Square square in _squares)
                     {
                         square.Draw(_window, RenderStates.Default);
                     }
                     break;
                 case GameState.Gamover:
-                    //TODO: нарисовать сообщение об окончании игры
-                    DrawText("Гамовер", 72, Color.Yellow, 0, 0);
+                    //нарисовать сообщение об окончании игры
+                    DrawText("ИГРА ОКОНЧЕНА", 72, color, 89, 210);
+                    DrawText($"Ваши очки {_score}", 24, color, 319, 300);
+                    DrawText("Нажмите [ESC] для возврата в меню.", 24, color, 182, 340);
                     break;
                 case GameState.GamoverRecord:
-                    //TODO: нарисовать сообщение об окончании игры с рекордом
-                    DrawText("Гамовер с рекордом", 72, Color.Yellow, 0, 0);
+                    //нарисовать сообщение об окончании игры с рекордом
+                    DrawText("ИГРА ОКОНЧЕНА", 72, color, 89, 190);
+                    DrawText($"Ваши очки {_score}", 24, color, 319, 280);
+                    DrawText("Поздравляем, вы побили рекорд!", 24, color, 202, 320);
+                    DrawText("Нажмите [ESC] для возврата в меню.", 24, color, 182, 360);
                     break;
             }
         }

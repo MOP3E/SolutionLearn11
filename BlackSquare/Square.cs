@@ -1,10 +1,5 @@
-﻿using System;
-using SFML.Window;
-using SFML.Graphics;
-using SFML.Audio;
+﻿using SFML.Graphics;
 using SFML.System;
-using System.Numerics;
-using System.Reflection.Metadata;
 
 namespace BlackSquare
 {
@@ -27,16 +22,6 @@ namespace BlackSquare
         /// 3/2 Пи
         /// </summary>
         private const float Pi32 = (float)(Math.PI * 1.5);
-        
-        /// <summary>
-        /// Пи * 2
-        /// </summary>
-        private const float Pi2 = (float)(Math.PI * 2);
-
-        /// <summary>
-        /// Пи * 3
-        /// </summary>
-        private const float Pi3 = (float)(Math.PI * 3);
 
         /// <summary>
         /// Размер квадрата.
