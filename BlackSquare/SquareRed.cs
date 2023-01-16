@@ -35,7 +35,7 @@ namespace BlackSquare
         /// </summary>
         private float _life;
 
-        public SquareRed(Random random, int minSpeed, int maxSpeed, IntRect field) : base(random, minSpeed, maxSpeed, field)
+        public SquareRed(Random random, SquareType type, int minSpeed, int maxSpeed, IntRect field) : base(random, type, minSpeed, maxSpeed, field)
         {
             Color = Color.Red;
             //Размеры квадрата - от 100х100 до 200х200. Время жизни 15-20 с, размер увеличивается со временем.

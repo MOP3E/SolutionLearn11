@@ -124,5 +124,10 @@ namespace BlackSquare
         {
             return (float)Math.Sqrt(a.X * a.X + a.Y * a.Y);
         }
+
+        public static float VMul(this Vector2f a, Vector2f b)
+        {
+            return a.X * b.Y - a.Y * b.X;
+        }
     }
 }

@@ -3,8 +3,18 @@ using SFML.System;
 
 namespace BlackSquare
 {
+    /// <summary>
+    /// Делегат для активации события супервремени.
+    /// </summary>
+    delegate void SuperTime();
+
     internal class SquareBlack : Square
     {
+        /// <summary>
+        /// Событие супервремени.
+        /// </summary>
+        public event SuperTime SuperTimeEvent;
+
         /// <summary>
         /// Максимальный размер квадрата.
         /// </summary>
@@ -25,12 +35,41 @@ namespace BlackSquare
         /// </summary>
         private bool _dead;
 
-        public SquareBlack(Random random, int minSpeed, int maxSpeed, IntRect field) : base(random, minSpeed, maxSpeed, field)
+        /// <summary>
+        /// Это суперквадрат.
+        /// </summary>
+        private bool _super;
+
+        /// <summary>
+        /// Суперцвет для суперквадрата.
+        /// </summary>
+        private Color _superColor = Color.Blue;
+
+        public SquareBlack(Random random, SquareType type, int minSpeed, int maxSpeed, IntRect field) : base(random, type, minSpeed, maxSpeed, field)
         {
             Color = Color.Black;
             //Размеры квадрата - от 150х150 до 50х50. 150 - 130 - 110 - 90 - 70 - 50
             Size = MaxSize;
             _dead = false;
+        }
+
+        /// <summary>
+        /// Отрисовка квадрата.
+        /// </summary>
+        public override void Draw(RenderTarget target, RenderStates states)
+        {
+            if (_super)
+            {
+                //это суперквадрат - поменять перед отрисовкой цвет на суперцвет
+                Color current = Color;
+                Color = _superColor;
+                base.Draw(target, states);
+                //вернуть исходный цвет квадрата
+                Color = current;
+                return;
+            }
+
+            base.Draw(target, states);
         }
 
         /// <summary>
@@ -45,6 +84,12 @@ namespace BlackSquare
                 {
                     //установить флаг смерти квадрата и вернуть истину
                     _dead = true;
+                    //если это суперквадрат - сгенерировать событие супервремени
+                    if(_super)
+                    {
+                        SuperTimeEvent?.Invoke();
+                        _super = false;
+                    }
                     return true;
                 }
             }
@@ -66,8 +111,10 @@ namespace BlackSquare
                 Position = new Vector2f(Random.Next(field.Width) + field.Left, Random.Next(field.Height) + field.Top);
                 //задать новую точку назначения квадрата
                 NewDestination(field);
-                //сбросить флаг смерти квадрата.
+                //сбросить флаг смерти квадрата
                 _dead = false;
+                //с вероятностью 1/10 выпадает суперквадрат, уничтожение которого отключает красные квадраты
+                _super = Random.Next(10) == 5;
                 return;
             }
 

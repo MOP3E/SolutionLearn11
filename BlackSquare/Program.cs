@@ -40,7 +40,17 @@ namespace BlackSquare
         /// Список красных квадратов на поле.
         /// </summary>
         private static List<SquareRed> _reds;
-        
+
+        /// <summary>
+        /// Тип квадрата.
+        /// </summary>
+        private static SquareType _type;
+
+        /// <summary>
+        /// Супервремя.
+        /// </summary>
+        private static float _superTime;
+
         /// <summary>
         /// Текущие очки.
         /// </summary>
@@ -60,7 +70,7 @@ namespace BlackSquare
         /// Текст для вывода текста на экран.
         /// </summary>
         private static Text _text;
-        
+
         static void Main(string[] args)
         {
             //молитва игровому богу
@@ -69,7 +79,7 @@ namespace BlackSquare
             //инициализация окна
             _window = new RenderWindow(new VideoMode(800, 600), "Чёрный квадрат");
             _window.SetFramerateLimit(60);
-            _window.Closed += _window_Closed;
+            _window.Closed += WindowOnClosed;
             //_window.SetMouseCursorVisible(false);
             //_window.SetMouseCursorGrabbed(true);
 
@@ -125,8 +135,28 @@ namespace BlackSquare
                     case GameState.MainMenu:
                         if (MouseState.LeftButtonPressed)
                         {
-                            //по нажатию кнопки мыши начать новую игру
-                            NewGame();
+                            Vector2i pos = Mouse.GetPosition(_window);
+                            if (pos.Y >= 343 && pos.Y <= 367)
+                            {
+                                if (pos.X >= 213 && pos.X <= 326)
+                                {
+                                    //начать игру за квадраты
+                                    _type = SquareType.Square;
+                                    NewGame();
+                                }
+                                if (pos.X >= 340 && pos.X <= 408)
+                                {
+                                    //начать игру за круги
+                                    _type = SquareType.Circle;
+                                    NewGame();
+                                }
+                                if (pos.X >= 420 && pos.X <= 587)
+                                {
+                                    //начать игру за треугольники
+                                    _type = SquareType.Triangle;
+                                    NewGame();
+                                }
+                            }
                         }
 
                         //выход из программы
@@ -138,30 +168,39 @@ namespace BlackSquare
                             _state = GameState.MainMenu;
                         else
                         {
+                            //проверить супервремя
+                            if (_superTime > 0) _superTime -= deltaTime;
+
                             //проверить, не нажата ли кнопка мыши
                             if (MouseState.LeftButtonPressed)
                             {
                                 //получить позицию мыши и проверить, не попало ли нажатие в квадрат
                                 Vector2i point = Mouse.GetPosition(_window);
 
-                                foreach (SquareRed red in _reds)
+                                //пока идёт супервремя, красные квадраты не отображаются на экране и не реагируют на мышь
+                                if (_superTime <= 0)
                                 {
-                                    if (red.HitTest(point))
+                                    //проверка красных квадратов
+                                    foreach (SquareRed red in _reds)
                                     {
-                                        //игра окончена
-                                        if (_score > _record)
+                                        if (red.HitTest(point))
                                         {
-                                            _record = _score;
-                                            _state = GameState.GamoverRecord;
+                                            //игра окончена
+                                            if (_score > _record)
+                                            {
+                                                _record = _score;
+                                                _state = GameState.GamoverRecord;
+                                            }
+                                            else
+                                            {
+                                                _state = GameState.Gamover;
+                                            }
+
+                                            break;
                                         }
-                                        else
-                                        {
-                                            _state = GameState.Gamover;
-                                        }
-                                        break;
                                     }
                                 }
-                                
+
                                 //завершение работы ветки если игра окончена
                                 if(_state != GameState.Game) break;
 
@@ -208,29 +247,42 @@ namespace BlackSquare
             //обнулить очки
             _score = 0;
 
+            //обнулить супервремя
+            _superTime = 0;
+
             //создать чёрные квадраты
             _blacks = new List<SquareBlack>
             {
-                new(_random, 180, 250, _field),
-                new(_random, 180, 250, _field),
+                new(_random, _type, 180, 250, _field),
+                new(_random, _type, 180, 250, _field),
+                new(_random, _type, 180, 250, _field),
             };
+            //подписаться на событие супервремени
+            foreach (SquareBlack black in _blacks) black.SuperTimeEvent += BlackSquareOnSuperTimeEvent;
 
             //создать красные квадраты
             _reds = new List<SquareRed>
             {
-                new(_random, 80, 120, _field),
-                new(_random, 80, 120, _field),
-                new(_random, 80, 120, _field),
-                new(_random, 80, 120, _field),
-                new(_random, 80, 120, _field),
+                new(_random, _type, 80, 120, _field),
+                new(_random, _type, 80, 120, _field),
+                new(_random, _type, 80, 120, _field),
             };
-
+            
             //создать список всех квадратов
             _squares = new List<Square>();
             _squares.AddRange(_blacks);
             _squares.AddRange(_reds);
 
             _state = GameState.Game;
+        }
+
+        /// <summary>
+        /// Событие запуска отсчёта супервремени для чёрного квадрата.
+        /// </summary>
+        private static void BlackSquareOnSuperTimeEvent()
+        {
+            //супервремя длится 5 секунд
+            _superTime = 5f;
         }
 
         /// <summary>
@@ -244,33 +296,54 @@ namespace BlackSquare
             {
                 case GameState.MainMenu:
                     //нарисовать главное меню
-                    int verticalOffset = 150;
+                    int verticalOffset = 130;
                     DrawText("Чёрный квадрат", 72, color, 124, 0 + verticalOffset);
                     DrawText($"Результат {_score}", 24, color, 332, 90 + verticalOffset);
                     DrawText($"Рекорд {_record}", 24, color, 348, 130 + verticalOffset);
-                    DrawText("Щёлкните мышью для начала игры.", 24, color, 186, 170 + verticalOffset);
-                    DrawText("Нажмите [ESC] для выхода из игры.", 24, color, 184, 210 + verticalOffset);
+                    DrawText("Выбери:", 24, color, 355, 170 + verticalOffset);
+                    DrawText("Квадраты  Круги  Треугольники", 24, Color.Red, 213, 210 + verticalOffset);
+                    DrawText("[ESC] для выхода из игры", 24, color, 244, 250 + verticalOffset);
                     break;
                 case GameState.Game:
                     //нарисовать очки
                     DrawText($"{_score}", 24, color, 740, 8);
-                    foreach (Square square in _squares)
+
+                    //нарисовать супервремя
+                    if (_superTime > 4) DrawText("5", 240, color, 325, 218);
+                    else if (_superTime > 3) DrawText("4", 240, color, 327, 218);
+                    else if (_superTime > 2) DrawText("3", 240, color, 337, 218);
+                    else if (_superTime > 1) DrawText("2", 240, color, 326, 218);
+                    else if (_superTime > 0) DrawText("1", 240, color, 343, 218);
+
+                    //нарисовать чёрные квадраты
+                    foreach (SquareBlack black in _blacks)
                     {
-                        square.Draw(_window, RenderStates.Default);
+                        black.Draw(_window, RenderStates.Default);
                     }
+
+                    //красные квадраты рисовать только если супервремя истекло
+                    if(_superTime <= 0)
+                    {
+                        //нарисовать красные квадраты
+                        foreach (SquareRed red in _reds)
+                        {
+                            red.Draw(_window, RenderStates.Default);
+                        }
+                    }
+
                     break;
                 case GameState.Gamover:
                     //нарисовать сообщение об окончании игры
                     DrawText("ИГРА ОКОНЧЕНА", 72, color, 89, 210);
                     DrawText($"Ваши очки {_score}", 24, color, 319, 300);
-                    DrawText("Нажмите [ESC] для возврата в меню.", 24, color, 182, 340);
+                    DrawText("[ESC] для возврата в меню", 24, color, 242, 340);
                     break;
                 case GameState.GamoverRecord:
                     //нарисовать сообщение об окончании игры с рекордом
                     DrawText("ИГРА ОКОНЧЕНА", 72, color, 89, 190);
                     DrawText($"Ваши очки {_score}", 24, color, 319, 280);
                     DrawText("Поздравляем, вы побили рекорд!", 24, color, 202, 320);
-                    DrawText("Нажмите [ESC] для возврата в меню.", 24, color, 182, 360);
+                    DrawText("[ESC] для возврата в меню", 24, color, 242, 360);
                     break;
             }
         }
@@ -278,7 +351,7 @@ namespace BlackSquare
         /// <summary>
         /// Событие нажатия на кнопку закрытия окна.
         /// </summary>
-        private static void _window_Closed(object sender, EventArgs e)
+        private static void WindowOnClosed(object sender, EventArgs e)
         {
             _window.Close();
         }

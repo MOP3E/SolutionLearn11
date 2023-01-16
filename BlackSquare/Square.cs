@@ -24,6 +24,16 @@ namespace BlackSquare
         private const float Pi32 = (float)(Math.PI * 1.5);
 
         /// <summary>
+        /// Коэффициент размера треугольника - косинус.
+        /// </summary>
+        private readonly float TriangleFactorCos = (float)(Math.Cos(Math.PI / 6.0));
+
+        /// <summary>
+        /// Коэффициент размера треугольника - синус.
+        /// </summary>
+        private readonly float TriangleFactorSin = (float)(Math.Sin(Math.PI / 6.0));
+
+        /// <summary>
         /// Размер квадрата.
         /// </summary>
         protected int Size;
@@ -63,7 +73,12 @@ namespace BlackSquare
         /// </summary>
         protected int MaxSpeed;
 
-        public Square(Random random, int minSpeed, int maxSpeed, IntRect field)
+        /// <summary>
+        /// Тип квадрата.
+        /// </summary>
+        protected SquareType Type;
+
+        public Square(Random random, SquareType type, int minSpeed, int maxSpeed, IntRect field)
         {
             Color = Color.White;
             Size = 100;
@@ -72,16 +87,35 @@ namespace BlackSquare
             MaxSpeed = maxSpeed;
             Position = new Vector2f(Random.Next(field.Width) + field.Left, Random.Next(field.Height) + field.Top);
             NewDestination(field);
+            Type = type;
         }
 
         /// <summary>
         /// Отрисовка квардрата на экране.
         /// </summary>
-        public void Draw(RenderTarget target, RenderStates states)
+        public virtual void Draw(RenderTarget target, RenderStates states)
         {
-            RectangleShape shape = new(new Vector2f(Size, Size))
-                { FillColor = Color, Origin = new Vector2f(Size / 2f, Size / 2f), Position = new Vector2f(Position.X, Position.Y) };
-            shape.Draw(target, states);
+            switch (Type)
+            {
+                case SquareType.Square:
+                    RectangleShape rectangle = new(new Vector2f(Size, Size))
+                        { FillColor = Color, Origin = new Vector2f(Size / 2f, Size / 2f), Position = new Vector2f(Position.X, Position.Y) };
+                    rectangle.Draw(target, states);
+                    break;
+                case SquareType.Circle:
+                    CircleShape circle = new CircleShape(Size / 2f)
+                        { FillColor = Color, Origin = new Vector2f(Size / 2f, Size / 2f), Position = new Vector2f(Position.X, Position.Y) };
+                    circle.Draw(target, states);
+                    break;
+                case SquareType.Triangle:
+                    ConvexShape triangle = new ConvexShape(3)
+                        { FillColor = Color, Origin = new Vector2f(Size / 2f, (Size / 2f) / TriangleFactorCos), Position = new Vector2f(Position.X, Position.Y) };
+                    triangle.SetPoint(0, new Vector2f(Size / 2f, 0));
+                    triangle.SetPoint(1, new Vector2f(0, Size * TriangleFactorCos));
+                    triangle.SetPoint(2, new Vector2f(Size, Size * TriangleFactorCos));
+                    triangle.Draw(target, states);
+                    break;
+            }
         }
 
         /// <summary>
@@ -89,7 +123,35 @@ namespace BlackSquare
         /// </summary>
         public virtual bool HitTest(Vector2i point)
         {
-            return point.X >= Position.X - Size / 2f && point.X < Position.X + Size / 2f && point.Y >= Position.Y - Size / 2f && point.Y < Position.Y + Size / 2f;
+            bool hit = false;
+            Vector2f test;
+            switch (Type)
+            {
+                case SquareType.Square:
+                    //проверить, находится ли точка внутри квадрата
+                    hit = point.X >= Position.X - Size / 2f && point.X < Position.X + Size / 2f && point.Y >= Position.Y - Size / 2f && point.Y < Position.Y + Size / 2f;
+                    break;
+                case SquareType.Circle:
+                    //проверить, находится ли точка внутри круга
+                    test = Position.Sub(point);
+                    hit = test.X * test.X + test.Y * test.Y <= Size * Size / 4f;
+                    break;
+                case SquareType.Triangle:
+                    //проверить, находится ли точка внутри треугольника
+                    Vector2f ab = new Vector2f(-Size / 2f, Size * TriangleFactorCos);
+                    Vector2f bc = new Vector2f(Size, 0);
+                    Vector2f ca = new Vector2f(-Size / 2f, -Size * TriangleFactorCos);
+                    Vector2f ap = new Vector2f(point.X - Position.X, point.Y - (Position.Y - (Size / 2f) / TriangleFactorCos));
+                    Vector2f bp = new Vector2f(point.X - (Position.X - Size / 2f), point.Y - (Position.Y + (Size / 2f) * TriangleFactorSin / TriangleFactorCos));
+                    Vector2f cp = new Vector2f(point.X - (Position.X + Size / 2f), point.Y - (Position.Y + (Size / 2f) * TriangleFactorSin / TriangleFactorCos));
+                    float abap = ab.VMul(ap);
+                    float bcbp = bc.VMul(bp);
+                    float cacp = ca.VMul(cp);
+                    hit = abap is < 1f and > -1f || bcbp is < 1f and > -1f || cacp is < 1f and > -1f || (abap < 0 && bcbp < 0 && cacp < 0) || (abap > 0 && bcbp > 0 && cacp > 0);
+                    break;
+            }
+
+            return hit;
         }
 
         /// <summary>
